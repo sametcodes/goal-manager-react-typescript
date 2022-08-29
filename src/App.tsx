@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Airtable from "airtable";
+import Airtable, { FieldSet } from "airtable";
 import Goal from "./components/Goal";
 import styled from "styled-components";
 import { GlobalStyle } from "./styles/Global.style";
 
-const base = new Airtable({ apiKey: "YOUR_API_KEY" }).base("YOUR_BASE_ID");
+const base = new Airtable({ apiKey: "key2noOcMp4dNFFYS" }).base("appbLCIbz7n3hF1pB");
 
 const StyledH1 = styled.h1`
   text-align: center;
@@ -12,35 +12,46 @@ const StyledH1 = styled.h1`
   margin: 1rem 0;
 `;
 
-function App() {
-  const [goals, setGoals] = useState([]);
-  const [updates, setUpdates] = useState([]);
+const App: React.FC = () => {
+  const [goals, setGoals] = useState<Airtable.Records<FieldSet>>([]);
+  const [updates, setUpdates] = useState<Airtable.Records<FieldSet>>([]);
 
-  useEffect(() => {
+  const fetchGoals = () => {
     base("goals")
       .select({ view: "Grid view" })
-      .eachPage((records, fetchNextPage) => {
+      .eachPage((records, fetchNextPage): any => {
         setGoals(records);
         fetchNextPage();
       });
+  }
+  const fetchUpdates: any = (): any => {
     base("updates")
       .select({ view: "Grid view" })
       .eachPage((records, fetchNextPage) => {
         setUpdates(records);
         fetchNextPage();
       });
+  }
+
+  useEffect(() => {
+    fetchGoals();
+    fetchUpdates();
+    return () => {
+      setGoals([]);
+      setUpdates([])
+    }
   }, []);
 
   return (
     <>
       <GlobalStyle />
       <StyledH1>My Goals</StyledH1>
-      {goals.map((goal) => (
+      {goals.map(goal => (
         <Goal
           key={goal.id}
           goal={goal}
           updates={updates.filter(
-            (update) => update.fields.goalid[0] === goal.id
+            (update) => update.fields.goal instanceof Array && update.fields.goal[0] === goal.id
           )}
         />
       ))}
